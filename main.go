@@ -8,18 +8,19 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
-	"github.com/joho/godotenv"
 )
 
+func buildDatabaseURL() string {
+	username := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	database := os.Getenv("DB_NAME")
+
+	return fmt.Sprintf("postgres://%s:%s@postgres:5432/%s", username, password, database)
+}
+
 func main() {
-
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error loading .env file: %v\n", err)
-	}
-
-	fmt.Println(os.Getenv("DATABASE_URL"))
-	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	databaseURL := buildDatabaseURL()
+	conn, err := pgx.Connect(context.Background(), databaseURL)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
