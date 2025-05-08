@@ -28,7 +28,7 @@ func main() {
 	defer conn.Close(context.Background())
 
 	var content string
-	err = conn.QueryRow(context.Background(), "select content from haiku where id=$1", 1).Scan(&content)
+	err = conn.QueryRow(context.Background(), "select content from haiku where haiku_id=$1", 1).Scan(&content)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
 		os.Exit(1)
