@@ -1,40 +1,34 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
+	"github.com/mi759/haikuapi/internal/handler"
+	"github.com/mi759/haikuapi/internal/repository"
+	"github.com/mi759/haikuapi/internal/usecase"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-func buildDatabaseURL() string {
+func buildDSN() string {
 	username := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
-	database := os.Getenv("DB_NAME")
+	dbname := os.Getenv("DB_NAME")
+	timezone := os.Getenv("TZ")
 
-	return fmt.Sprintf("postgres://%s:%s@postgres:5432/%s", username, password, database)
+	return fmt.Sprintf("host=postgres user=%s password=%s dbname=%s port=5432 sslmode=disable TimeZone=%s", username, password, dbname, timezone)
 }
 
 func main() {
-	databaseURL := buildDatabaseURL()
-	conn, err := pgx.Connect(context.Background(), databaseURL)
+	dsn := buildDSN()
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
-	defer conn.Close(context.Background())
-
-	var content string
-	err = conn.QueryRow(context.Background(), "select content from haiku where haiku_id=$1", 1).Scan(&content)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Println(content)
 
 	router := gin.Default()
 
@@ -56,11 +50,9 @@ func main() {
 		},
 	}))
 
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+	userRepo := repository.NewUserRepository(db)
+	userUsecase := usecase.NewUserUsecase(userRepo)
 
+	handler.NewUserHandler(router, userUsecase)
 	router.Run(":8080")
 }
