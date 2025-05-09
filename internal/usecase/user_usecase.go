@@ -8,7 +8,6 @@ import (
 
 type UserUsecase interface {
 	GetUserByID(ctx context.Context, id int32) (*domain.User, error)
-	CreateUser(ctx context.Context, user *domain.User) error
 }
 
 type userUsecase struct {
@@ -21,8 +20,4 @@ func NewUserUsecase(repo domain.UserRepository) UserUsecase {
 
 func (uc *userUsecase) GetUserByID(ctx context.Context, id int32) (*domain.User, error) {
 	return uc.repo.GetByID(ctx, id)
-}
-
-func (uc *userUsecase) CreateUser(ctx context.Context, user *domain.User) error {
-	return uc.repo.Create(ctx, user)
 }

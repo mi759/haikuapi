@@ -34,8 +34,3 @@ func (r *userRepository) GetByID(ctx context.Context, id int32) (*domain.User, e
 	}
 	return converter.ToDomain(&m), nil
 }
-
-func (r *userRepository) Create(ctx context.Context, user *domain.User) error {
-	m := converter.ToModel(user)
-	return r.db.WithContext(ctx).Create(m).Error
-}
